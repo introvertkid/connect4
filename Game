@@ -1,0 +1,12 @@
+import pygame
+
+window = pygame.display.set_mode((900, 600))
+
+pygame.display.set_caption("meo meo")
+
+isRunning = True
+
+while isRunning:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            isRunning = False
