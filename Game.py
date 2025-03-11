@@ -1,4 +1,5 @@
 import pygame
+import math
 
 #Begin of initialization
 pygame.init()
@@ -41,7 +42,12 @@ while running:
     
     for i in range (350, 951, 100):
         for j in range (50, 551, 100):
-            pygame.draw.circle(screen, WHITE, (i, j), 45)
+            x = pygame.mouse.get_pos()[0]
+            y = pygame.mouse.get_pos()[1]
+            if(math.sqrt((x-i)**2 + (y-j)**2)) <= 45:
+                pygame.draw.circle(screen, BLACK, (i, j), 45)
+            else:
+                pygame.draw.circle(screen, WHITE, (i, j), 45)
             
     text1 = font.render("NEW", True, BLACK)  
     text1_rect = text1.get_rect(center=rect1.center)  
