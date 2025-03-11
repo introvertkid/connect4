@@ -1,19 +1,24 @@
 import pygame
 
+#Begin of initialization
 pygame.init()
+pygame.font.init()
+#End of initialization
 
-screen = pygame.display.set_mode((1000, 600))
-pygame.display.set_caption("meo meo")
-
+#Begin of constant variables declaration
 GREY = (150, 150, 150)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-pygame.font.init()
 font = pygame.font.SysFont("comic sans ms", 40)
 
-running = True
 clock = pygame.time.Clock()
+#End of constant variables declaration
+
+screen = pygame.display.set_mode((1000, 600))
+pygame.display.set_caption("meo meo")
+
+running = True
 
 while running:
     for event in pygame.event.get():
@@ -41,6 +46,7 @@ while running:
     text1 = font.render("NEW", True, BLACK)  
     text1_rect = text1.get_rect(center=rect1.center)  
     screen.blit(text1, text1_rect) 
+    
     text2 = font.render("BACK", True, BLACK)
     text2_rect = text2.get_rect(center=rect2.center)
     screen.blit(text2, text2_rect)
