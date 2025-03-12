@@ -23,7 +23,7 @@ class Board:
                 break
         
         # check win
-        if self.isWinningMove(row, col):
+        if self.isWinningMove(self.ROW, self.COL):
             self.printBoard()
             print(f"{self.current_player} WIN!")
             return "WIN"
@@ -72,8 +72,10 @@ while True:
     board.printBoard()
     try:
         col = int(input("(0-6): "))
+        if col < 0 or col > 6:
+            raise ValueError("nhập từ 0 đến 6!")
         result = board.play(col)
         if result == "WIN":
             break
     except ValueError:
-        print("nhập từ 0-6!")
+        print("nhập từ 0 đến 6!")
