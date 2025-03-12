@@ -10,6 +10,7 @@ pygame.font.init()
 GREY = (150, 150, 150)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+VIOLET = (238,130,238)
 
 font = pygame.font.SysFont("comic sans ms", 40)
 
@@ -19,12 +20,24 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((1000, 600))
 pygame.display.set_caption("meo meo")
 
-running = True
+gameState = True
 
-while running:
+coordinates = set()
+
+while gameState:
+    mouseX = pygame.mouse.get_pos()[0]
+    mouseY = pygame.mouse.get_pos()[1]
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            gameState = False
+            exit()
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            x = math.floor((mouseX - 300) / 100)
+            y = math.floor(mouseY / 100)
+            x, y = y, x
+            coordinates.add((x, y))
     
     screen.fill(GREY)
     
@@ -42,12 +55,15 @@ while running:
     
     for i in range (350, 951, 100):
         for j in range (50, 551, 100):
-            x = pygame.mouse.get_pos()[0]
-            y = pygame.mouse.get_pos()[1]
-            if(math.sqrt((x-i)**2 + (y-j)**2)) <= 45:
+            if(math.sqrt((mouseX-i)**2 + (mouseY-j)**2)) <= 45:
                 pygame.draw.circle(screen, BLACK, (i, j), 45)
             else:
                 pygame.draw.circle(screen, WHITE, (i, j), 45)
+
+    for x in range(7):
+        for y  in range(6):
+            if (y, x) in coordinates:
+                pygame.draw.circle(screen, VIOLET, (x + 350 + x * 100 - x, y + 50 + y * 100 - y), 45)
             
     text1 = font.render("NEW", True, BLACK)  
     text1_rect = text1.get_rect(center=rect1.center)  
