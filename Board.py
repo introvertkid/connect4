@@ -23,7 +23,7 @@ class Board:
                 break
         
         # check win
-        if self.isWinningMove(row, col):
+        if self.isWinningMove(self.ROW, self.COL):
             self.printBoard()
             print(f"{self.current_player} WIN!")
             return "WIN"
