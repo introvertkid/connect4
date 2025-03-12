@@ -55,7 +55,7 @@ while gameState:
     
     for i in range (350, 951, 100):
         for j in range (50, 551, 100):
-            if(math.sqrt((mouseX-i)**2 + (mouseY-j)**2)) <= 45:
+            if i - 50 <= mouseX <= i + 50 and j - 50 <= mouseY <= j + 50:
                 pygame.draw.circle(screen, BLACK, (i, j), 45)
             else:
                 pygame.draw.circle(screen, WHITE, (i, j), 45)
@@ -63,7 +63,7 @@ while gameState:
     for x in range(7):
         for y  in range(6):
             if (y, x) in coordinates:
-                pygame.draw.circle(screen, VIOLET, (x + 350 + x * 100 - x, y + 50 + y * 100 - y), 45)
+                pygame.draw.circle(screen, VIOLET, (350 + x * 100, 50 + y * 100), 45)
             
     text1 = font.render("NEW", True, BLACK)  
     text1_rect = text1.get_rect(center=rect1.center)  
