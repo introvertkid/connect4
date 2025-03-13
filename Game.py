@@ -17,14 +17,14 @@ NAVY = (0,0,128)
 font = pygame.font.SysFont("comic sans ms", 40)
 
 clock = pygame.time.Clock()
-#End of constant variables declaration
 
 screen = pygame.display.set_mode((1000, 600))
 pygame.display.set_caption("meo meo")
+#End of constant variables declaration
 
 gameState = True
 
-coordinates = set()
+coordinates = []
 
 board = Board.Board()
 
@@ -42,6 +42,18 @@ def draw_background():
         pygame.draw.line(screen, WHITE, (300, i), (1000, i), 3)
     for i in range (300, 1001, 100):
         pygame.draw.line(screen, WHITE, (i, 0), (i, 600), 3)
+
+    for i in range (350, 951, 100):
+        for j in range (50, 551, 100):
+            if i - 50 <= mouseX <= i + 50 and j - 50 <= mouseY <= j + 50:
+                pygame.draw.circle(screen, BLACK, (i, j), 45)
+            else:
+                pygame.draw.circle(screen, WHITE, (i, j), 45)
+
+    for i in range(len(coordinates)):
+        (y, x) = coordinates[i]
+        color = VIOLET if i % 2 == 0 else NAVY
+        pygame.draw.circle(screen, color, (350 + x * 100, 50 + y * 100), 45)
 
     text1 = font.render("NEW", True, BLACK)  
     text1_rect = text1.get_rect(center=rect1.center)  
@@ -64,36 +76,21 @@ while gameState:
         if event.type == pygame.MOUSEBUTTONUP:
             x = math.floor((mouseX - 300) / 100)
             y = board.play(x)
+
+            if y == -1:
+                continue
+
             x, y = y, x
-            # print(board.current_player)
-            # if not (y, x, board.current_player) in coordinates:
-            coordinates.add((x, y, board.current_player))
-            # board.play(y)
+            coordinates.append((x, y))
             isMoved = True
                 
             # check win
-            if board.isWinningMove(board.ROW, board.COL):
-                # self.printBoard()
+            if board.isWinningMove():
                 print(f"{board.current_player} WIN!")
+
+            board.current_player ^= 1
     
     draw_background()
-    
-    for i in range (350, 951, 100):
-        for j in range (50, 551, 100):
-            if i - 50 <= mouseX <= i + 50 and j - 50 <= mouseY <= j + 50:
-                pygame.draw.circle(screen, BLACK, (i, j), 45)
-            else:
-                pygame.draw.circle(screen, WHITE, (i, j), 45)
-
-    for x in range(7):
-        for y  in range(6):
-            if (y, x, 0) in coordinates:
-                pygame.draw.circle(screen, VIOLET, (350 + x * 100, 50 + y * 100), 45)
-            elif (y, x, 1) in coordinates:
-                pygame.draw.circle(screen, NAVY, (350 + x * 100, 50 + y * 100), 45)
-
-    if isMoved:
-        board.current_player = 1 if board.current_player == 0 else 0
                     
     pygame.display.flip()
     clock.tick(120)

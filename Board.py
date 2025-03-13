@@ -14,22 +14,15 @@ class Board:
     def play(self, col):
         # tha vao cot da chon va check win chua
         if not self.isValid(col):
-            return False
+            return -1
         
         # tha vao hang thap nhat
         for row in reversed(range(self.ROW)):
             if self.board[row][col] == ' ':
                 self.board[row][col] = self.current_player
-                break 
-            
-        # check win
-        # if self.isWinningMove(self.ROW, self.COL):
-        #     # self.printBoard()
-        #     print(f"{self.current_player} WIN!")
-        #     return "WIN"
-        return row
+                return row
 
-    def isWinningMove(self, ROW, COL):
+    def isWinningMove(self):
         # Check whether there are 4 aligning discs
         # Start with row (r), column (c)
         # Moving in row/horizontal direction (dr), column/vertical direction (dc)
@@ -37,7 +30,7 @@ class Board:
         def check_direction(r, c, dr, dc, player):
             count = 0
             for _ in range(4):
-                if 0 <= r < ROW and 0 <= c < COL and self.board[r][c] == player:
+                if 0 <= r < self.ROW and 0 <= c < self.COL and self.board[r][c] == player:
                     count += 1
                     r += dr
                     c += dc
@@ -45,8 +38,8 @@ class Board:
                     break
             return count == 4
 
-        for r in reversed(range(ROW)):
-            for c in range(COL):
+        for r in reversed(range(self.ROW)):
+            for c in range(self.COL):
                 if self.board[r][c] != ' ':
                     player = self.board[r][c]
                     if (check_direction(r, c, 1, 0, player) or  # Vertical
@@ -58,7 +51,7 @@ class Board:
     
     def printBoard(self):
         for row in self.board:
-            print("|".join(row))
+            print(row)
         print("-" * (self.COL * 2 - 1))
 
 ########################################################
