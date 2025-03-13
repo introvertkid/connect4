@@ -20,13 +20,14 @@ class Board:
         for row in reversed(range(self.ROW)):
             if self.board[row][col] == ' ':
                 self.board[row][col] = self.current_player
-                break
-        
+                break 
+            
         # check win
-        if self.isWinningMove(self.ROW, self.COL):
-            # self.printBoard()
-            print(f"{self.current_player} WIN!")
-            return "WIN"
+        # if self.isWinningMove(self.ROW, self.COL):
+        #     # self.printBoard()
+        #     print(f"{self.current_player} WIN!")
+        #     return "WIN"
+        return row
 
     def isWinningMove(self, ROW, COL):
         # Check whether there are 4 aligning discs

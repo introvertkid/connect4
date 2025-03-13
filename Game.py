@@ -63,13 +63,18 @@ while gameState:
 
         if event.type == pygame.MOUSEBUTTONUP:
             x = math.floor((mouseX - 300) / 100)
-            y = math.floor(mouseY / 100)
+            y = board.play(x)
             x, y = y, x
-            print(board.current_player)
-            if not (y, x, board.current_player) in coordinates:
-                coordinates.add((x, y, board.current_player))
-                board.play(y)
-                isMoved = True
+            # print(board.current_player)
+            # if not (y, x, board.current_player) in coordinates:
+            coordinates.add((x, y, board.current_player))
+            # board.play(y)
+            isMoved = True
+                
+            # check win
+            if board.isWinningMove(board.ROW, board.COL):
+                # self.printBoard()
+                print(f"{board.current_player} WIN!")
     
     draw_background()
     
