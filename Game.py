@@ -1,5 +1,6 @@
 import pygame
 import math
+import Board
 
 #Begin of initialization
 pygame.init()
@@ -11,6 +12,7 @@ GREY = (150, 150, 150)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 VIOLET = (238,130,238)
+NAVY = (0,0,128)
 
 font = pygame.font.SysFont("comic sans ms", 40)
 
@@ -24,21 +26,9 @@ gameState = True
 
 coordinates = set()
 
-while gameState:
-    mouseX = pygame.mouse.get_pos()[0]
-    mouseY = pygame.mouse.get_pos()[1]
+board = Board.Board()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            gameState = False
-            exit()
-
-        if event.type == pygame.MOUSEBUTTONUP:
-            x = math.floor((mouseX - 300) / 100)
-            y = math.floor(mouseY / 100)
-            x, y = y, x
-            coordinates.add((x, y))
-    
+def draw_background():
     screen.fill(GREY)
     
     rect1 = pygame.Rect(50, 100, 200, 50)
@@ -52,6 +42,36 @@ while gameState:
         pygame.draw.line(screen, WHITE, (300, i), (1000, i), 3)
     for i in range (300, 1001, 100):
         pygame.draw.line(screen, WHITE, (i, 0), (i, 600), 3)
+
+    text1 = font.render("NEW", True, BLACK)  
+    text1_rect = text1.get_rect(center=rect1.center)  
+    screen.blit(text1, text1_rect) 
+    
+    text2 = font.render("BACK", True, BLACK)
+    text2_rect = text2.get_rect(center=rect2.center)
+    screen.blit(text2, text2_rect)
+
+while gameState:
+    mouseX = pygame.mouse.get_pos()[0]
+    mouseY = pygame.mouse.get_pos()[1]
+    isMoved = False
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            gameState = False
+            exit()
+
+        if event.type == pygame.MOUSEBUTTONUP:
+            x = math.floor((mouseX - 300) / 100)
+            y = math.floor(mouseY / 100)
+            x, y = y, x
+            print(board.current_player)
+            if not (y, x, board.current_player) in coordinates:
+                coordinates.add((x, y, board.current_player))
+                board.play(y)
+                isMoved = True
+    
+    draw_background()
     
     for i in range (350, 951, 100):
         for j in range (50, 551, 100):
@@ -62,17 +82,14 @@ while gameState:
 
     for x in range(7):
         for y  in range(6):
-            if (y, x) in coordinates:
+            if (y, x, 0) in coordinates:
                 pygame.draw.circle(screen, VIOLET, (350 + x * 100, 50 + y * 100), 45)
-            
-    text1 = font.render("NEW", True, BLACK)  
-    text1_rect = text1.get_rect(center=rect1.center)  
-    screen.blit(text1, text1_rect) 
-    
-    text2 = font.render("BACK", True, BLACK)
-    text2_rect = text2.get_rect(center=rect2.center)
-    screen.blit(text2, text2_rect)
-    
+            elif (y, x, 1) in coordinates:
+                pygame.draw.circle(screen, NAVY, (350 + x * 100, 50 + y * 100), 45)
+
+    if isMoved:
+        board.current_player = 1 if board.current_player == 0 else 0
+                    
     pygame.display.flip()
     clock.tick(120)
     

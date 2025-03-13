@@ -6,7 +6,7 @@ class Board:
     def __init__(self):
         self.board = [[' ' for _ in range(self.COL)] 
                         for _ in range(self.ROW)] 
-        self.current_player = 'X'
+        self.current_player = 0
 
     def isValid(self, col):
         return 0 <= col < self.COL and self.board[0][col] == ' '
@@ -24,13 +24,9 @@ class Board:
         
         # check win
         if self.isWinningMove(self.ROW, self.COL):
-            self.printBoard()
+            # self.printBoard()
             print(f"{self.current_player} WIN!")
             return "WIN"
-        
-        # chuyen nguoi choi
-        self.current_player = 'O' if self.current_player == 'X' else 'X'
-        return True
 
     def isWinningMove(self, ROW, COL):
         # Check whether there are 4 aligning discs
@@ -41,7 +37,6 @@ class Board:
             count = 0
             for _ in range(4):
                 if 0 <= r < ROW and 0 <= c < COL and self.board[r][c] == player:
-                    print(r, ' ', c)
                     count += 1
                     r += dr
                     c += dc
@@ -66,16 +61,16 @@ class Board:
         print("-" * (self.COL * 2 - 1))
 
 ########################################################
-board = Board()
+# board = Board()
 
-while True:
-    board.printBoard()
-    try:
-        col = int(input("(0-6): "))
-        if col < 0 or col > 6:
-            raise ValueError("nhập từ 0 đến 6!")
-        result = board.play(col)
-        if result == "WIN":
-            break
-    except ValueError:
-        print("nhập từ 0 đến 6!")
+# while True:
+#     board.printBoard()
+#     try:
+#         col = int(input("(0-6): "))
+#         if col < 0 or col > 6:
+#             raise ValueError("nhập từ 0 đến 6!")
+#         result = board.play(col)
+#         if result == "WIN":
+#             break
+#     except ValueError:
+#         print("nhập từ 0 đến 6!")
