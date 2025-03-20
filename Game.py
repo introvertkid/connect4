@@ -117,7 +117,7 @@ while gameState:
             elif board.isDraw(): #if board full
                 print(f"{board.current_player ^ 1} DRAW!")
                 win_flag = True # end game
-    
+
     draw_background()
 
     if(win_flag):
