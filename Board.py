@@ -10,50 +10,55 @@ class Board:
         self.ROW = Row
         self.COL = Col
         self.current_player = 0
-        self.MOV = Mov
+        self.MOV = []
+        for i in Mov:
+            self.play(int(i)-1)
+            self.printBoard()
 
     def copy(self):
         return copy.deepcopy(self)
 
-    def minimax(self, lo, hi):
+    def minimax(self, alpha, beta):
         # check for draw game
         if len(self.MOV) == self.ROW * self.COL:
             return 0
         
         for x in range(self.COL):
             if self.play(x) != -1:
-                if not self.isWinningMove():
-                    self.undoMove()
+                if self.isWinningMove():
                     return (self.ROW * self.COL + 1 - len(self.MOV)) / 2
+                else:
+                    self.undoMove()
                             
         # upper bound of our score as we can't win immediately
         mx = (self.ROW * self.COL - 1 - len(self.MOV)) / 2
 
-        if hi > mx:
-            hi = mx
-            if lo >= hi:
-                return hi
+        if beta > mx:
+            beta = mx
+            if alpha >= beta:
+                return beta
             
         for x in range(self.COL):
             if(self.isValid(x)):
                 P2 = self.copy()
                 P2.play(x)
-                score = -P2.minimax(-hi, -lo)
+                score = -P2.minimax(-beta, -alpha)
 
-                if score >= hi:
+                if score >= beta:
                     return score
-                if score > lo: 
-                    lo = score
+                if score > alpha: 
+                    alpha = score
 
-        return lo
+        return alpha
 
     def undoMove(self):
         if len(self.MOV):
             c = self.MOV[-1]
-            self.MOV = self.MOV[:-1]
+            self.MOV.pop()
             for r in range(self.ROW):
                 if self.board[r][c] != ' ':
                     self.board[r][c] = ' '
+                    self.current_player ^= 1
                     return
         else:
             print('Unable to undo move')
@@ -70,7 +75,8 @@ class Board:
         for row in reversed(range(self.ROW)):
             if self.board[row][col] == ' ':
                 self.board[row][col] = self.current_player
-                self.MOV += str(col)
+                self.MOV.append(col)
+                self.current_player ^= 1
                 return row
 
     def isWinningMove(self):
@@ -106,16 +112,7 @@ class Board:
         print("-" * (self.COL * 2 - 1))
 
 ########################################################
-# board = Board()
-
-# while True:
-#     board.printBoard()
-#     try:
-#         col = int(input("(0-6): "))
-#         if col < 0 or col > 6:
-#             raise ValueError("nhập từ 0 đến 6!")
-#         result = board.play(col)
-#         if result == "WIN":
-#             break
-#     except ValueError:
-#         print("nhập từ 0 đến 6!")
+board = Board(Mov = "6216633712715125334265163163777225")
+board.printBoard()
+print(board.MOV)
+print('score after run minimax:', board.minimax(-100, 100))
