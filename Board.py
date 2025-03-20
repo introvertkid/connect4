@@ -112,7 +112,8 @@ class Board:
         print("-" * (self.COL * 2 - 1))
 
 ########################################################
-board = Board(Mov = "6216633712715125334265163163777225")
-board.printBoard()
-print(board.MOV)
-print('score after run minimax:', board.minimax(-100, 100))
+if __name__ == "__main__":
+    board = Board(Mov = "6216633712715125334265163163777225")
+    board.printBoard()
+    print(board.MOV)
+    print('score after run minimax:', board.minimax(-100, 100))
