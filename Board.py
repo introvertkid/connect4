@@ -79,6 +79,12 @@ class Board:
                 self.current_player ^= 1
                 return row
 
+    def isDraw(self):
+        for row in self.board:
+            if ' ' in row:
+                return False
+        return True
+
     def isWinningMove(self):
         # Check whether there are 4 aligning discs
         # Start with row (r), column (c)

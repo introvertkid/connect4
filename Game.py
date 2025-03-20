@@ -84,6 +84,20 @@ while gameState:
                 draw_background()
                 pygame.display.flip() 
 
+            elif pygame.Rect(50, 180, 200, 50).collidepoint(event.pos): # undo move
+                if coordinates:
+                    x, y = coordinates.pop() # get last move
+                    board.undoMove()
+
+                if not board.isWinningMove():
+                    win_flag = False
+
+                draw_background()
+                pygame.display.flip()
+
+            if win_flag:
+                continue
+
             x = math.floor((mouseX - 300) / 100)
             y = board.play(x)
 
@@ -99,13 +113,20 @@ while gameState:
                 print(f"{board.current_player ^ 1} WIN!")
                 win_flag = True
                 board.printBoard()
+
+            elif board.isDraw(): #if board full
+                print(f"{board.current_player ^ 1} DRAW!")
+                win_flag = True # end game
     
     draw_background()
 
     if(win_flag):
         win_block = pygame.Rect(20, 300, 250, 100)
         pygame.draw.rect(screen, YELLOW, win_block)
-        win_text = font.render("Player "+str((board.current_player ^ 1) + 1)+" win!", True, RED)
+        if board.isDraw():
+            win_text = font.render("Game Draw!", True, RED)
+        else:
+            win_text = font.render("Player "+str((board.current_player ^ 1) + 1)+" win!", True, RED)
         win_rect = win_text.get_rect(center=win_block.center)
         screen.blit(win_text, win_rect)
         pygame.display.update()
