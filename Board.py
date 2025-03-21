@@ -5,11 +5,11 @@ class Board:
     COL = 7
 
     def __init__(self, Row = 6, Col = 7, Mov = ""):
-        self.board = [[' ' for _ in range(self.COL)] 
+        self.board = [[0 for _ in range(self.COL)] 
                         for _ in range(self.ROW)]
         self.ROW = Row
         self.COL = Col
-        self.current_player = 0
+        self.current_player = 1
         self.MOV = []
         for i in Mov:
             self.play(int(i)-1)
@@ -17,6 +17,9 @@ class Board:
 
     def copy(self):
         return copy.deepcopy(self)
+    
+    def changePlayer(self):
+        self.current_player = 3 - self.current_player
 
     def minimax(self, alpha, beta):
         # check for draw game
@@ -56,15 +59,15 @@ class Board:
             c = self.MOV[-1]
             self.MOV.pop()
             for r in range(self.ROW):
-                if self.board[r][c] != ' ':
-                    self.board[r][c] = ' '
-                    self.current_player ^= 1
+                if self.board[r][c] != 0:
+                    self.board[r][c] = 0
+                    self.changePlayer()
                     return
         else:
             print('Unable to undo move')
 
     def isValid(self, col):
-        return 0 <= col < self.COL and self.board[0][col] == ' '
+        return 0 <= col < self.COL and self.board[0][col] == 0
     
     def play(self, col):
         # tha vao cot da chon va check win chua
@@ -73,10 +76,10 @@ class Board:
         
         # tha vao hang thap nhat
         for row in reversed(range(self.ROW)):
-            if self.board[row][col] == ' ':
+            if self.board[row][col] == 0:
                 self.board[row][col] = self.current_player
                 self.MOV.append(col)
-                self.current_player ^= 1
+                self.changePlayer()
                 return row
 
     def isWinningMove(self):
@@ -97,7 +100,7 @@ class Board:
 
         for r in reversed(range(self.ROW)):
             for c in range(self.COL):
-                if self.board[r][c] != ' ':
+                if self.board[r][c] != 0:
                     player = self.board[r][c]
                     if (check_direction(r, c, 1, 0, player) or  # Vertical
                             check_direction(r, c, 0, 1, player) or  # Horizontal

@@ -96,7 +96,7 @@ while gameState:
                 
             # check win
             if board.isWinningMove():
-                print(f"{board.current_player ^ 1} WIN!")
+                print(f"{board.current_player} WIN!")
                 win_flag = True
                 board.printBoard()
     
@@ -105,8 +105,8 @@ while gameState:
     if(win_flag):
         win_block = pygame.Rect(20, 300, 250, 100)
         pygame.draw.rect(screen, YELLOW, win_block)
-        win_text = font.render("Player "+str((board.current_player ^ 1) + 1)+" win!", True, RED)
-        win_rect = win_text.get_rect(center=win_block.center)
+        win_text = font.render("Player " + str(3 - board.current_player) + " win!", True, RED)
+        win_rect = win_text.get_rect(center = win_block.center)
         screen.blit(win_text, win_rect)
         pygame.display.update()
                     
