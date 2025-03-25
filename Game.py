@@ -112,7 +112,7 @@ while gameState:
             if board.isWinningMove():
                 print(f"{board.current_player} WIN!")
                 win_flag = True
-                board.printBoard()
+                # board.printBoard()
 
             elif board.isDraw(): #if board full
                 print(f"{board.current_player ^ 1} DRAW!")

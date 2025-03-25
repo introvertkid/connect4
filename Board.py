@@ -13,7 +13,7 @@ class Board:
         self.MOV = []
         for i in Mov:
             self.play(int(i)-1)
-            self.printBoard()
+            # self.printBoard()
 
     def copy(self):
         return copy.deepcopy(self)
@@ -84,7 +84,7 @@ class Board:
 
     def isDraw(self):
         for row in self.board:
-            if ' ' in row:
+            if 0 in row:
                 return False
         return True
 
@@ -121,8 +121,21 @@ class Board:
         print("-" * (self.COL * 2 - 1))
 
 ########################################################
+def test(filename):
+    with open(filename, 'r') as file:
+        for line in file:
+            parts = line.strip().split()
+            if len(parts) != 2:
+                continue
+            moves, expected = parts[0], int(parts[1])
+            board = Board(Mov=moves)
+            result = board.minimax(-100, 100)
+            print(f"Exp: {expected} - Minimax: {result} -> {result == expected}")
+
 if __name__ == "__main__":
-    board = Board(Mov = "6216633712715125334265163163777225")
+    # test(r"C:\Users\LAPTOP\OneDrive\Desktop\py\Connect4\connect4\test_set\Test_L3_R1.txt")
+
+    board = Board(Mov="6216633712715125334265163163777225")
     board.printBoard()
     print(board.MOV)
     print('score after run minimax:', board.minimax(-100, 100))
