@@ -1,11 +1,14 @@
 import sys
 from Position import Position
+from TranspositionTable import TranspositionTable
+from TranspositionTable import next_prime
 
 class Book:
     def __init__(self, WIDTH = 7, HEIGHT = 6, DEPTH = -1):
         self.width = WIDTH
         self.height = HEIGHT
         self.depth = DEPTH
+        self.T = TranspositionTable()
 
     def load(self, filename: str):
         f = open(filename, mode="rb")
@@ -39,10 +42,34 @@ class Book:
         if not log_size or log_size[0] > 40:
             print(f"Unable to load opening book: invalid log2(size)(found: {int.from_bytes(log_size)})", file=sys.stderr)
 
+        partial_key_bytes = int.from_bytes(partial_key_bytes, "little")
+        value_bytes = int.from_bytes(value_bytes, "little")
+        log_size = log_size[0]
+        size = next_prime(2 ** log_size)
+        keys, values = [], []
+
+        for _ in range(size):
+            key_byte = f.read(partial_key_bytes)
+            if not key_byte or len(key_byte) != partial_key_bytes:
+                print(f"Failed to read key", file=sys.stderr)
+                return
+            keys.append(int.from_bytes(key_byte, "little"))
+
+        for _ in range(size):
+            value_byte = f.read(value_bytes)
+            if not value_byte or len(value_byte) != value_bytes:
+                print(f"Failed to read value", file=sys.stderr)
+                return
+            keys.append(int.from_bytes(value_byte, "little"))
+        
+        key_int = int.from_bytes(key_byte, "little")
+        value_int = int.from_bytes(value_byte, "little")
+        self.T.put(key_int, value_int)
+
         f.close()
 
     def get(self, P: Position):
         if P.nb_moves() > self.depth:
             return 0
         else:
-            return self.get(P.key3())
+            return self.T.get(P.key3())

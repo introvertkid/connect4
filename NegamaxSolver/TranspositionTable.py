@@ -28,6 +28,7 @@ class TranspositionTable:
     def reset(self):
         self.K = [0] * self.size
         self.V = [0] * self.size
+
     def index(self, key):
         return key % self.size
     
@@ -52,7 +53,7 @@ class TranspositionTable:
     def getSize(self):
         return self.size
     
-    def getKetSize(self) -> int:
+    def getKeySize(self) -> int:
         return len(self.K)
     
     def getValueSize(self) -> int:
