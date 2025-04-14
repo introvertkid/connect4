@@ -1,6 +1,6 @@
 class MoveSorter:
-    def __init__(self, width):
-        self.width = width
+    def __init__(self):
+        self.width = 7
         self.entries = []
 
     def add(self, move, score):

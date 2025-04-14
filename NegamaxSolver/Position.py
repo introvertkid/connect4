@@ -1,5 +1,6 @@
 import math
 import sys
+import copy
 
 class Position:
     """
@@ -50,6 +51,7 @@ class Position:
     key là một biểu diễn duy nhất của bàn cờ: key = current_position + mask
     (vì bottom là hằng số, nó không cần thiết để phân biệt các thế cờ).
     """
+
     WIDTH = 7  
     HEIGHT = 6 
 
@@ -94,11 +96,11 @@ class Position:
 
     def play_seq(self, seq: str) -> int:
         played_moves = 0
-        for i, char in enumerate(seq):
-            if not char.isdigit():
+        for i, c in enumerate(seq):
+            if not c.isdigit():
                 return played_moves
 
-            col = int(char) - 1
+            col = int(c) - 1
             if not (0 <= col < self.WIDTH):
                  return played_moves
 
@@ -110,6 +112,8 @@ class Position:
 
             self.play_col(col)
             played_moves += 1
+        print(f"Played {played_moves} moves")
+
         return played_moves
 
     def can_win_next(self) -> bool:
@@ -222,3 +226,6 @@ class Position:
         r |= p & (position >> 3 * (Position.HEIGHT + 2))
 
         return r & (Position.BOARD_MASK ^ mask)
+    
+    def copy(self):
+        return copy.deepcopy(self)

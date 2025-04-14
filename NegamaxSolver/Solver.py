@@ -1,7 +1,9 @@
 from typing import List
-from position import Position
-# from transposition_table import TranspositionTable
-# from opening_book import OpeningBook
+
+from Position import Position
+from TranspositionTable import TranspositionTable
+from MoveSorter import MoveSorter
+# import OpeningBook
 
 class Solver:
     INVALID_MOVE = -1000
@@ -13,6 +15,7 @@ class Solver:
         #                                      8,  # uint8_t equivalent
         #                                      Solver.TABLE_SIZE)
         # self.book = OpeningBook(Position.WIDTH, Position.HEIGHT)
+        self.transTable = TranspositionTable()
         self.nodeCount = 0
         self.columnOrder = [Position.WIDTH // 2 + (1 - 2 * (i % 2)) * ((i + 1) // 2)
                             for i in range(Position.WIDTH)]
@@ -58,29 +61,29 @@ class Solver:
                     if alpha >= beta:
                         return beta
 
-        book_val = self.book.get(P)
-        if book_val:
-            return book_val + Position.MIN_SCORE - 1
+        # book_val = self.book.get(P)
+        # if book_val:
+        #     return book_val + Position.MIN_SCORE - 1
 
-        # moves = MoveSorter()
-        # for i in reversed(range(Position.WIDTH)):
-        #     move = possible & Position.column_mask(self.columnOrder[i])
-        #     if move:
-        #         moves.add(move, P.move_score(move))
-        #
-        # while True:
-        #     next_move = moves.get_next()
-        #     if not next_move:
-        #         break
-        #     P2 = P.copy()
-        #     P2.play(next_move)
-        #     score = -self.negamax(P2, -beta, -alpha)
-        #
-        #     if score >= beta:
-        #         self.transTable.put(key, score + Position.MAX_SCORE - 2 * Position.MIN_SCORE + 2)
-        #         return score
-        #     if score > alpha:
-        #         alpha = score
+        moves = MoveSorter()
+        for i in reversed(range(Position.WIDTH)):
+            move = possible & Position._column_mask(self.columnOrder[i])
+            if move:
+                moves.add(move, P.move_score(move))
+        
+        while True:
+            next_move = moves.get_next()
+            if not next_move:
+                break
+            P2 = P.copy()
+            P2.play(next_move)
+            score = -self.negamax(P2, -beta, -alpha)
+        
+            if score >= beta:
+                self.transTable.put(key, score + Position.MAX_SCORE - 2 * Position.MIN_SCORE + 2)
+                return score
+            if score > alpha:
+                alpha = score
 
         self.transTable.put(key, alpha - Position.MIN_SCORE + 1)
         return alpha
@@ -125,7 +128,7 @@ class Solver:
 
     def get_node_count(self) -> int:
         return self.nodeCount
-
+    
     # def reset(self):
     #     self.nodeCount = 0
     #     self.transTable.reset()
