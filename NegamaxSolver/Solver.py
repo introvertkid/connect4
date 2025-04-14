@@ -3,18 +3,14 @@ from typing import List
 from Position import Position
 from TranspositionTable import TranspositionTable
 from MoveSorter import MoveSorter
-# import OpeningBook
+from Book import Book
 
 class Solver:
     INVALID_MOVE = -1000
     TABLE_SIZE = 24  # stores 2^24 elements in the transposition table
 
     def __init__(self):
-        # self.transTable = TranspositionTable(Position.WIDTH * (Position.HEIGHT + 1) - Solver.TABLE_SIZE,
-        #                                      Position.position_t,
-        #                                      8,  # uint8_t equivalent
-        #                                      Solver.TABLE_SIZE)
-        # self.book = OpeningBook(Position.WIDTH, Position.HEIGHT)
+        self.book = Book()
         self.transTable = TranspositionTable()
         self.nodeCount = 0
         self.columnOrder = [Position.WIDTH // 2 + (1 - 2 * (i % 2)) * ((i + 1) // 2)
@@ -61,9 +57,9 @@ class Solver:
                     if alpha >= beta:
                         return beta
 
-        # book_val = self.book.get(P)
-        # if book_val:
-        #     return book_val + Position.MIN_SCORE - 1
+        book_val = self.book.get(P)
+        if book_val:
+            return book_val + Position.MIN_SCORE - 1
 
         moves = MoveSorter()
         for i in reversed(range(Position.WIDTH)):
@@ -132,6 +128,6 @@ class Solver:
     # def reset(self):
     #     self.nodeCount = 0
     #     self.transTable.reset()
-    #
-    # def load_book(self, book_file: str):
-    #     self.book.load(book_file)
+    
+    def load_book(self, book_file: str):
+        self.book.load(book_file)
