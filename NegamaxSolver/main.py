@@ -17,9 +17,7 @@ if __name__ == "__main__":
             P = Position.Position()
             s = input("choi mm di: ")
 
-            if len(s) == 0:
-                break
-            elif P.play_seq(s) != len(s):
+            if P.play_seq(s) != len(s):
                 print(f"haha ngu vl choi sai roi")
             else:
                 start = time.time()
