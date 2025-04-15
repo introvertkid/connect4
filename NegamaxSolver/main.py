@@ -1,6 +1,5 @@
 import Solver
 import Position
-import Book
 import time
 
 if __name__ == "__main__":
@@ -15,8 +14,6 @@ if __name__ == "__main__":
     
     try:
         while True:
-            
-
             P = Position.Position()
             s = input("choi mm di: ")
 

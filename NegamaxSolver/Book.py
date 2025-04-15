@@ -1,46 +1,9 @@
 import struct
-import math
 import sys
 import os
 from array import array # Sử dụng array để lưu trữ dữ liệu nhị phân hiệu quả hơn list
+from TranspositionTable import med, has_factor, next_prime
 
-# ==============================================================
-# Các hàm tính số nguyên tố (chuyển từ C++ constexpr)
-# Lưu ý: Phiên bản Python có thể chậm hơn đáng kể so với C++
-# đối với log_size rất lớn, nhưng đối với các giá trị
-# log_size thông thường (vd: 21-27) thì vẫn chấp nhận được.
-# ==============================================================
-
-def _med(min_val: int, max_val: int) -> int:
-    """Tính giá trị trung bình (floor division)."""
-    return (min_val + max_val) // 2
-
-def _has_factor(n: int, min_val: int, max_val: int) -> bool:
-    """Kiểm tra n có ước số trong khoảng [min_val, max_val) không."""
-    if min_val * min_val > n:
-        # Không tìm ước số lớn hơn căn bậc hai của n
-        return False
-    elif min_val + 1 >= max_val:
-        # Khoảng kiểm tra chỉ còn một số
-        return n % min_val == 0
-    else:
-        # Chia đôi khoảng kiểm tra (tương tự tìm kiếm nhị phân)
-        mid = _med(min_val, max_val)
-        # Sử dụng short-circuiting của or
-        return _has_factor(n, min_val, mid) or _has_factor(n, mid, max_val)
-
-def next_prime(n: int) -> int:
-    """Tìm số nguyên tố nhỏ nhất lớn hơn hoặc bằng n (n >= 2)."""
-    if n < 2:
-        n = 2 # Đảm bảo n >= 2
-    # Kiểm tra xem n có ước số nào trong khoảng [2, n) hay không
-    # Nếu _has_factor trả về True (có ước), tìm số nguyên tố tiếp theo
-    # Nếu _has_factor trả về False (không có ước), n là số nguyên tố
-    return next_prime(n + 1) if _has_factor(n, 2, n) else n
-
-# ==============================================================
-# Lớp Position giả lập (Giữ nguyên từ lần sửa trước)
-# ==============================================================
 class Position:
     # Cần triển khai các phương thức này một cách chính xác
     _nb_moves: int = 0
@@ -60,9 +23,6 @@ class Position:
         # Đảm bảo key là số nguyên không âm (mô phỏng uint64_t)
         self._key3 = key & 0xFFFFFFFFFFFFFFFF # Giữ trong giới hạn 64-bit
 
-# ==============================================================
-# Lớp Book được cập nhật
-# ==============================================================
 class Book:
     """
     Quản lý Opening Book cho Connect4, được tải từ tệp nhị phân.
@@ -223,8 +183,6 @@ class Book:
              return False
         except Exception as e:
              print(f"Lỗi không xác định khi tải opening book: {e}", file=sys.stderr)
-             # import traceback
-             # traceback.print_exc()
              return False
 
     def save(self, output_file: str) -> bool:
