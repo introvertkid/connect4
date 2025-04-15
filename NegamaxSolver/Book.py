@@ -50,6 +50,7 @@ class Book:
 
         for _ in range(size):
             key_byte = f.read(partial_key_bytes)
+            # print(key_byte, int.from_bytes(key_byte, "little"))
             if not key_byte or len(key_byte) != partial_key_bytes:
                 print(f"Failed to read key", file=sys.stderr)
                 return
@@ -57,19 +58,28 @@ class Book:
 
         for _ in range(size):
             value_byte = f.read(value_bytes)
+            # print(value_byte, int.from_bytes(value_byte, "little"))
             if not value_byte or len(value_byte) != value_bytes:
                 print(f"Failed to read value", file=sys.stderr)
                 return
-            keys.append(int.from_bytes(value_byte, "little"))
+            values.append(int.from_bytes(value_byte, "little"))
         
-        key_int = int.from_bytes(key_byte, "little")
-        value_int = int.from_bytes(value_byte, "little")
-        self.T.put(key_int, value_int)
+        print(f"len of keys and values: {len(keys)}, {len(values)}")
+
+        for i in range(size):
+            key_int = int.from_bytes(key_byte, "little")
+            value_int = int.from_bytes(value_byte, "little")
+            self.T.put(key_int, value_int)
+
+        self.depth = int.from_bytes(_depth, "little")
 
         f.close()
 
     def get(self, P: Position):
         if P.nb_moves() > self.depth:
+            # print("hihi")
             return 0
         else:
+            # print("haha")
+            # print(f"T size: {len(self.T)}")
             return self.T.get(P.key3())

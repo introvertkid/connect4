@@ -39,6 +39,6 @@ void readBookFile(const std::string& path) {
  }
 
  int main() {
-     readBookFile("7x6.book");
+     readBookFile("NegamaxSolver/7x6.book");
      return 0;
  }

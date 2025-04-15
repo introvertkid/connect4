@@ -58,8 +58,8 @@ class Solver:
                         return beta
 
         book_val = self.book.get(P)
-        print(f"Book val wtf: {book_val}")
         if book_val:
+            print(f"Book val wtf: {book_val}")
             return book_val + Position.MIN_SCORE - 1
 
         moves = MoveSorter()
