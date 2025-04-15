@@ -10,7 +10,7 @@ class Solver:
     TABLE_SIZE = 24  # stores 2^24 elements in the transposition table
 
     def __init__(self):
-        self.book = Book()
+        self.book = Book(width = 7, height=6)
         self.transTable = TranspositionTable()
         self.nodeCount = 0
         self.columnOrder = [Position.WIDTH // 2 + (1 - 2 * (i % 2)) * ((i + 1) // 2)
