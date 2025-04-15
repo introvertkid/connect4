@@ -2,7 +2,7 @@ import struct
 import sys
 import os
 from array import array # Sử dụng array để lưu trữ dữ liệu nhị phân hiệu quả hơn list
-from TranspositionTable import med, has_factor, next_prime
+from .TranspositionTable import med, has_factor, next_prime
 
 class Position:
     # Cần triển khai các phương thức này một cách chính xác

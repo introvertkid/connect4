@@ -6,7 +6,7 @@ if __name__ == "__main__":
     print("Loading book...")
     start = time.time()
 
-    filename = "NegamaxSolver/7x6.book"
+    filename = "7x6.book"
     solver = Solver.Solver()
     solver.load_book(filename)
 

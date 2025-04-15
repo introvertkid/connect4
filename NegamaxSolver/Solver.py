@@ -1,9 +1,9 @@
 from typing import List
 
-from Position import Position
-from TranspositionTable import TranspositionTable
-from MoveSorter import MoveSorter
-from Book import Book
+from .Position import Position
+from .TranspositionTable import TranspositionTable
+from .MoveSorter import MoveSorter
+from .Book import Book
 
 class Solver:
     INVALID_MOVE = -1000

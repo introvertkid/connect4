@@ -1,3 +1,5 @@
+import time
+
 from fastapi import FastAPI, HTTPException
 import random
 import uvicorn
@@ -35,7 +37,9 @@ async def make_move(game_state: GameState) -> AIResponse:
             raise ValueError("Không có nước đi hợp lệ")
 
         # selected_move = random.choice(game_state.valid_moves) # change logic thuật toán AI của bạn ở đây
+        start = time.time()
         selected_move = get_best_move(game_state.board, game_state.valid_moves)
+        print(f"Analysis done after {time.time() - start}")
 
         return AIResponse(move=selected_move)
     except Exception as e:

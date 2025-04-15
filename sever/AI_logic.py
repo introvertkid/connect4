@@ -1,9 +1,16 @@
+import sys
+import os
+from typing import List
+# Add parent directory to Python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from NegamaxSolver.Position import Position
 from NegamaxSolver.Solver import Solver
 
+filename = "NegamaxSolver/7x6.book"
 solver = Solver()
+solver.load_book(filename)
 
-def get_best_move(board: list[list[int]], valid_moves: list[int]) -> int:
+def get_best_move(board: List[List[int]], valid_moves: List[int]) -> int:
     """
     Given a 2D board and list of valid column indices (0-based), returns the best column to play (0-based).
     """
@@ -25,7 +32,6 @@ def get_best_move(board: list[list[int]], valid_moves: list[int]) -> int:
                     move_sequence += str(col + 1)  # Convert 0-based to 1-based
                     col_heights[col] += 1
                     break
-
     # Build Position
     P = Position()
     P.play_seq(move_sequence)
@@ -36,3 +42,13 @@ def get_best_move(board: list[list[int]], valid_moves: list[int]) -> int:
     # Choose column with the highest score (among valid moves)
     best_col = max(valid_moves, key=lambda c: scores[c])
     return best_col
+
+if __name__ == "__main__":
+    board = [[0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 2, 0, 0, 0],
+        [0, 2, 1, 1, 2, 0, 0]]
+    valid_move = [0, 1, 2, 3, 4, 5, 6]
+    get_best_move(board, valid_move)
