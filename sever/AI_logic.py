@@ -57,7 +57,7 @@ def register_opponent_move(current_board: List[List[int]]):
 
     # Game over? Reset everything.
     if is_game_over(current_board):
-        print("Game over detected. Resetting state.")
+        print("Opponent wins. Game over detected. Resetting state.")
         reset_state()
         return
 
@@ -91,6 +91,12 @@ def get_best_move(current_player: int, valid_moves: List[int]) -> int:
         if previous_board[row][best_col] == 0:
             previous_board[row][best_col] = current_player
             break
+
+    # Game over? Reset everything.
+    if is_game_over(previous_board):
+        print("I win. Game over detected. Resetting state.")
+        reset_state()
+        return -1
 
     return best_col
 
