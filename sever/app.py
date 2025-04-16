@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 
-from AI_logic import get_best_move
+from AI_logic import get_best_move_cpp
 
 app = FastAPI()
 
@@ -36,16 +36,18 @@ async def make_move(game_state: GameState) -> AIResponse:
         if not game_state.valid_moves:
             raise ValueError("Không có nước đi hợp lệ")
 
-        # selected_move = random.choice(game_state.valid_moves) # change logic thuật toán AI của bạn ở đây
-        start = time.time()
-        selected_move = get_best_move(game_state.board, game_state.valid_moves)
-        print(f"Analysis done after {time.time() - start}")
+
+        selected_move = get_best_move_cpp(game_state.board, game_state.valid_moves)
+
 
         return AIResponse(move=selected_move)
     except Exception as e:
-        if game_state.valid_moves:
-            return AIResponse(move=game_state.valid_moves[0])
-        raise HTTPException(status_code=400, detail=str(e))
+         print(f"Error processing request: {e}") # Log lỗi nếu có
+         if game_state.valid_moves:
+             # Cân nhắc trả về lỗi thay vì nước đi đầu tiên khi có lỗi AI
+             # return AIResponse(move=game_state.valid_moves[0])
+             raise HTTPException(status_code=500, detail=f"Lỗi xử lý AI: {e}")
+         raise HTTPException(status_code=400, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
