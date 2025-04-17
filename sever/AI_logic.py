@@ -3,9 +3,6 @@ from typing import List, Dict
 import time
 import subprocess
 
-# --- Cấu hình đường dẫn ---
-# **** Đảm bảo file Python này nằm ở 'c:\Users\sonle\Documents\Connect4_AI\connect4\' ****
-# **** và file exe nằm ở 'c:\Users\sonle\Documents\Connect4_AI\connect4\sever\c4solver.exe' ****
 try:
     SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 except NameError:
@@ -15,13 +12,8 @@ except NameError:
 
 SEVER_DIR = os.path.join(SCRIPT_DIR) # Đường dẫn đến thư mục sever
 EXE_NAME = "c4solver.exe"
-EXE_PATH = os.path.join(SEVER_DIR, EXE_NAME) # Đường dẫn đầy đủ đến file exe
+EXE_PATH = os.path.join(SEVER_DIR, EXE_NAME)
 BOOK_PATH = os.path.join(SEVER_DIR, "7x6.book")
-
-# In ra để kiểm tra đường dẫn được tạo ra
-print(f"DEBUG: SCRIPT_DIR = {SCRIPT_DIR}")
-print(f"DEBUG: SEVER_DIR = {SEVER_DIR}")
-print(f"DEBUG: EXE_PATH = {EXE_PATH}")
 
 sequence = ""
 previous_board = [[0 for _ in range(7)] for _ in range(6)]
@@ -130,18 +122,9 @@ def get_best_move(board: List[List[int]], current_player: int, valid_moves: List
     if not move_sequence and num_pieces_on_board > 0:
         raise ValueError(f"LỖI: Không thể tạo move_sequence hợp lệ từ board cung cấp. Board có thể không hợp lệ.")
 
-    # 2. Kiểm tra sự tồn tại của file exe một lần nữa với đường dẫn đã debug
-    if not os.path.exists(EXE_PATH):
-        # In lại đường dẫn kiểm tra lần cuối
-        print(f"Kiểm tra lại đường dẫn file exe: {EXE_PATH}")
-        raise FileNotFoundError(f"LỖI: Không tìm thấy file thực thi tại đường dẫn đã xác định: {EXE_PATH}")
-
     scores_from_cpp = [-10000] * len(board[0])
 
     command = [EXE_PATH]
-    print(f"DEBUG: Đang chạy lệnh: {' '.join(command)}")
-    print(f"DEBUG: Input (stdin) cho C++: '{move_sequence}'")
-    print(f"DEBUG: Chạy từ thư mục (cwd): {SEVER_DIR}") # Kiểm tra cwd
 
     result = subprocess.run(
         command,
@@ -173,8 +156,6 @@ def get_best_move(board: List[List[int]], current_player: int, valid_moves: List
     for col_index in valid_moves:
         if 0 <= col_index < len(scores_from_cpp):
             current_score = scores_from_cpp[col_index]
-            # Thêm debug điểm số cho nước đi hợp lệ
-            # print(f"DEBUG: Xét cột {col_index} (hợp lệ), điểm C++: {current_score}")
             if current_score > best_score:
                 best_score = current_score
                 best_col = col_index

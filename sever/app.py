@@ -1,8 +1,5 @@
-import time
-import asyncio # Import asyncio để sử dụng sleep bất đồng bộ
-
+import asyncio
 from fastapi import FastAPI, HTTPException
-import random
 import uvicorn
 from pydantic import BaseModel
 from typing import List, Optional
