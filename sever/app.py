@@ -1,4 +1,5 @@
 import time
+import asyncio # Import asyncio để sử dụng sleep bất đồng bộ
 
 from fastapi import FastAPI, HTTPException
 import random
@@ -6,7 +7,6 @@ import uvicorn
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
-
 from AI_logic import get_best_move_cpp
 
 app = FastAPI()
@@ -33,21 +33,44 @@ class AIResponse(BaseModel):
 @app.post("/api/connect4-move")
 async def make_move(game_state: GameState) -> AIResponse:
     try:
+        print(f"Nhận yêu cầu: Player {game_state.current_player}, Valid Moves: {game_state.valid_moves}")
         if not game_state.valid_moves:
-            raise ValueError("Không có nước đi hợp lệ")
+            # Không có nước đi hợp lệ nào được cung cấp từ client
+            print("Lỗi: Không có nước đi hợp lệ nào được cung cấp trong yêu cầu.")
+            raise HTTPException(status_code=400, detail="Không có nước đi hợp lệ nào được cung cấp.")
 
-
+        # Gọi hàm logic AI (đảm bảo hàm này xử lý lỗi nội bộ nếu có)
         selected_move = get_best_move_cpp(game_state.board, game_state.current_player, game_state.valid_moves)
 
+        # Kiểm tra xem AI có trả về nước đi hợp lệ không
+        # (Điều chỉnh logic này dựa trên cách get_best_move_cpp báo lỗi)
+        if selected_move == -1 or selected_move not in game_state.valid_moves:
+            print(f"Lỗi: AI trả về nước đi không hợp lệ ({selected_move}) hoặc không tìm thấy nước đi.")
+            # Quyết định xử lý: có thể chọn nước đi ngẫu nhiên hoặc báo lỗi
+            # Ví dụ: báo lỗi
+            raise HTTPException(status_code=500, detail=f"Lỗi xử lý AI: Không thể xác định nước đi hợp lệ. AI trả về {selected_move}")
+            # Hoặc chọn ngẫu nhiên (không khuyến khích nếu AI lỗi):
+            # print("Cảnh báo: AI lỗi, chọn nước đi ngẫu nhiên.")
+            # selected_move = random.choice(game_state.valid_moves)
 
+
+        # --- THÊM ĐỘ TRỄ 0.5 GIÂY TẠI ĐÂY ---
+        print(f"AI đã chọn nước đi: {selected_move}. Đang chờ 0.5 giây trước khi gửi phản hồi...")
+        await asyncio.sleep(1.5) # Sử dụng asyncio.sleep cho hàm async
+
+        print("Đã hết thời gian chờ. Gửi phản hồi.")
         return AIResponse(move=selected_move)
+
+    # Xử lý lỗi cụ thể hơn nếu cần
+    except HTTPException as he:
+        # Log lỗi HTTPException nếu muốn, rồi raise lại
+        print(f"HTTP Exception: {he.status_code} - {he.detail}")
+        raise he
     except Exception as e:
-         print(f"Error processing request: {e}") # Log lỗi nếu có
-         if game_state.valid_moves:
-             # Cân nhắc trả về lỗi thay vì nước đi đầu tiên khi có lỗi AI
-             # return AIResponse(move=game_state.valid_moves[0])
-             raise HTTPException(status_code=500, detail=f"Lỗi xử lý AI: {e}")
-         raise HTTPException(status_code=400, detail=str(e))
+        # Log các lỗi không mong muốn khác
+        print(f"Lỗi không mong muốn xảy ra: {e}")
+        # Trả về lỗi server chung
+        raise HTTPException(status_code=500, detail=f"Lỗi máy chủ nội bộ khi xử lý yêu cầu: {e}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
