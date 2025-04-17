@@ -1,9 +1,6 @@
-import sys
 import os
-import cProfile
 from typing import List, Dict
 import time
-import pstats
 import subprocess
 
 # --- Cấu hình đường dẫn ---
@@ -61,10 +58,6 @@ def reset_state():
     sequence = ""
     previous_board = [[0 for _ in range(7)] for _ in range(6)]
 
-
-# --- Phần Solver Python (tùy chọn) ---
-# ... (Giữ nguyên nếu cần)
-
 def convert_board_to_movesequence(current_board: List[List[int]]) -> str:
     """
     Chuyển đổi trạng thái bàn cờ (board) 2D thành chuỗi nước đi (move_sequence).
@@ -98,20 +91,12 @@ def convert_board_to_movesequence(current_board: List[List[int]]) -> str:
 
     return move_sequence
 
-def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: List[int]) -> int:
-    """
-    Lấy nước đi tốt nhất bằng cách gọi file thực thi C++ c4solver.exe.
-    """
+def get_best_move(board: List[List[int]], current_player: int, valid_moves: List[int]) -> int:
     global sequence, previous_board
     if not valid_moves:
         print("Cảnh báo: Không có nước đi hợp lệ nào.")
         return -1
-
-    if not valid_moves:
-        print("Cảnh báo: Không có nước đi hợp lệ nào.")
-        return -1 # Hoặc raise ValueError
-
-    # --- BEGIN: Xử lý bảng rỗng ---
+    
     # Kiểm tra xem tất cả các ô có bằng 0 không
     is_empty_board = all(cell == 0 for row in board for cell in row)
 
@@ -135,7 +120,6 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
              # Trường hợp cực hiếm: bảng rỗng nhưng không có nước đi hợp lệ?
              print("LỖI: Bảng rỗng nhưng không có nước đi hợp lệ nào được cung cấp.")
              return -1 # Hoặc raise lỗi
-    # --- END: Xử lý bảng rỗng ---
 
     # 1. Chuyển đổi board sang move_sequence
     move_sequence = convert_board_to_movesequence(board)
@@ -154,74 +138,34 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
 
     scores_from_cpp = [-10000] * len(board[0])
 
-    try:
-        # 3. Chuẩn bị và thực thi lệnh C++
-        command = [EXE_PATH]
-        print(f"DEBUG: Đang chạy lệnh: {' '.join(command)}")
-        print(f"DEBUG: Input (stdin) cho C++: '{move_sequence}'")
-        print(f"DEBUG: Chạy từ thư mục (cwd): {SEVER_DIR}") # Kiểm tra cwd
+    command = [EXE_PATH]
+    print(f"DEBUG: Đang chạy lệnh: {' '.join(command)}")
+    print(f"DEBUG: Input (stdin) cho C++: '{move_sequence}'")
+    print(f"DEBUG: Chạy từ thư mục (cwd): {SEVER_DIR}") # Kiểm tra cwd
 
-        result = subprocess.run(
-            command,
-            input=move_sequence,
-            capture_output=True,
-            text=True,
-            check=True,
-            encoding='utf-8',
-            cwd=SEVER_DIR # Rất quan trọng: chạy exe từ thư mục chứa nó
-        )
-        # ... (Phần phân tích output và chọn nước đi giữ nguyên như trước) ...
-        # 4. Phân tích output từ stdout của C++
-        print(f"DEBUG: C++ stdout:\n---\n{result.stdout.strip()}\n---")
-        if result.stderr:
-            print(f"DEBUG: C++ stderr:\n---\n{result.stderr.strip()}\n---")
+    result = subprocess.run(
+        command,
+        input=move_sequence,
+        capture_output=True,
+        text=True,
+        check=True,
+        encoding='utf-8',
+        cwd=SEVER_DIR
+    )
 
-        output_lines = result.stdout.strip().splitlines()
-        if not output_lines:
-            # Xử lý trường hợp C++ không trả về gì ngay cả khi chạy thành công (mã 0)
-             if move_sequence == "": # Nếu input là rỗng, có thể output cũng rỗng là đúng
-                 print("DEBUG: Input sequence rỗng, output từ C++ cũng rỗng.")
-                 # Cần quyết định giá trị trả về cho trường hợp board trống
-                 # Có thể C++ trả về điểm cho các nước đi đầu tiên?
-                 # Giả sử C++ trả về lỗi hoặc output không đúng chuẩn nếu seq rỗng
-                 raise ValueError("LỖI: File C++ không trả về output nào cho input rỗng (cần kiểm tra logic C++).")
-             else:
-                 raise ValueError("LỖI: File C++ không trả về output nào.")
+    output_lines = result.stdout.strip().splitlines()
 
+    last_line = output_lines[-1].strip()
+    parts = last_line.split()
+    expected_parts = 1+len(board[0])
+    if len(parts) < expected_parts:
+            # In thêm thông tin debug nếu lỗi phân tích
+        print(f"DEBUG: Số phần tử nhận được: {len(parts)}, kỳ vọng: {expected_parts}")
+        print(f"DEBUG: Các phần tử: {parts}")
 
-        last_line = output_lines[-1].strip()
-        parts = last_line.split()
-        expected_parts = 1+len(board[0])
-        if len(parts) < expected_parts:
-             # In thêm thông tin debug nếu lỗi phân tích
-            print(f"DEBUG: Số phần tử nhận được: {len(parts)}, kỳ vọng: {expected_parts}")
-            print(f"DEBUG: Các phần tử: {parts}")
-            raise ValueError(f"LỖI: Output từ C++ không đúng định dạng. Kỳ vọng {expected_parts} phần, nhận được {len(parts)}: '{last_line}'")
-
-        score_strings = parts[1:expected_parts]
-        scores_from_cpp = [int(s) for s in score_strings]
-        print(f"DEBUG: Điểm số phân tích được từ C++: {scores_from_cpp}")
-
-    except FileNotFoundError:
-        raise FileNotFoundError(f"LỖI: Không thể chạy. Không tìm thấy file thực thi tại: {EXE_PATH}")
-    except subprocess.CalledProcessError as e:
-        print(f"\n--- LỖI: Chương trình C++ kết thúc với mã lỗi {e.returncode} ---")
-        print(f"Lệnh đã chạy: {' '.join(e.cmd)}")
-        print(f"Input gửi đi: '{move_sequence}'")
-        if e.stdout: print(f"Output (stdout) khi lỗi:\n{e.stdout.strip()}")
-        if e.stderr: print(f"Error Output (stderr) khi lỗi:\n{e.stderr.strip()}")
-        raise RuntimeError(f"Solver C++ thất bại với mã lỗi {e.returncode}") from e
-    except (ValueError, IndexError) as e:
-        output_received = result.stdout.strip() if 'result' in locals() else "(Không có output hoặc lỗi trước đó)"
-        print(f"\n--- LỖI: Không thể phân tích output từ C++ ---")
-        print(f"Output nhận được: {output_received}")
-        print(f"Lỗi chi tiết: {e}")
-        raise ValueError(f"Không thể phân tích output của solver C++: {e}") from e
-    except Exception as e:
-        print(f"\n--- LỖI KHÔNG MONG MUỐN KHI TƯƠNG TÁC VỚI C++ ---")
-        print(f"Loại lỗi: {type(e).__name__}")
-        print(f"Chi tiết: {e}")
-        raise RuntimeError("Lỗi không mong muốn khi tương tác với solver C++") from e
+    score_strings = parts[1:expected_parts]
+    scores_from_cpp = [int(s) for s in score_strings]
+    print(f"DEBUG: Scores: {scores_from_cpp}")
 
     # 5. Chọn nước đi tốt nhất
     best_score = -float('inf')
@@ -234,11 +178,9 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
             if current_score > best_score:
                 best_score = current_score
                 best_col = col_index
-        else:
-             print(f"CẢNH BÁO: Nước đi hợp lệ {col_index} nằm ngoài phạm vi điểm trả về từ C++ (0-{len(scores_from_cpp)-1})")
 
     if best_col == -1:
-        print("CẢNH BÁO: Không thể xác định nước đi tốt nhất từ C++ và valid_moves.")
+        print("CẢNH BÁO: Không thể xác định nước đi tốt nhất valid_moves.")
         if valid_moves:
             print("DEBUG: Trả về nước đi hợp lệ đầu tiên làm dự phòng.")
             return valid_moves[0]
@@ -262,13 +204,7 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
 
     return best_col
 
-
-# --- Khối main để kiểm tra ---
 if __name__ == "__main__":
-    # *** QUAN TRỌNG: Sử dụng một trạng thái bàn cờ HỢP LỆ để kiểm tra ***
-    # Ví dụ: Bàn cờ sau các nước đi 4, 4, 5, 3, 6, 5, 7 (1-based)
-    # Player 1: 4, 5, 6, 7
-    # Player 2: 4, 3, 5
     board_example_valid = [
         [0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0],
@@ -281,12 +217,10 @@ if __name__ == "__main__":
     # Các cột hợp lệ (chưa đầy): 0, 1, 2, 3, 4, 5, 6 (giả sử chưa cột nào đầy)
     valid_moves_example_valid = [col for col in range(7) if board_example_valid[0][col] == 0]
 
-    print("--- Bắt đầu kiểm tra gọi Solver C++ với board hợp lệ ---")
     start_time_cpp = time.time()
     try:
-        # Gọi hàm sử dụng C++ solver với board hợp lệ
-        best_move = get_best_move_cpp(board_example_valid, 1, valid_moves_example_valid)
-        print(f"\n>>> Kết quả: Nước đi tốt nhất được đề xuất bởi C++ là cột: {best_move}")
+        best_move = get_best_move(board_example_valid, 1, valid_moves_example_valid)
+        print(f"\n>>> Kết quả: Nước đi tốt nhất được đề xuất là cột: {best_move}")
     except Exception as e:
         print(f"\n--- LỖI TRONG QUÁ TRÌNH KIỂM TRA ---")
         print(f"Lỗi: {e}")
@@ -294,4 +228,5 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
     end_time_cpp = time.time()
-    print(f"--- Kết thúc kiểm tra Solver C++. Thời gian: {end_time_cpp - start_time_cpp:.4f} giây ---")
+    
+    print(f"--- Analysis done after: {end_time_cpp - start_time_cpp:.4f} giây ---")

@@ -7,7 +7,7 @@ import uvicorn
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
-from AI_logic import get_best_move_cpp
+from AI_logic import get_best_move
 
 app = FastAPI()
 
@@ -40,7 +40,7 @@ async def make_move(game_state: GameState) -> AIResponse:
             raise HTTPException(status_code=400, detail="Không có nước đi hợp lệ nào được cung cấp.")
 
         # Gọi hàm logic AI (đảm bảo hàm này xử lý lỗi nội bộ nếu có)
-        selected_move = get_best_move_cpp(game_state.board, game_state.current_player, game_state.valid_moves)
+        selected_move = get_best_move(game_state.board, game_state.current_player, game_state.valid_moves)
 
         # Kiểm tra xem AI có trả về nước đi hợp lệ không
         # (Điều chỉnh logic này dựa trên cách get_best_move_cpp báo lỗi)
@@ -53,10 +53,8 @@ async def make_move(game_state: GameState) -> AIResponse:
             # print("Cảnh báo: AI lỗi, chọn nước đi ngẫu nhiên.")
             # selected_move = random.choice(game_state.valid_moves)
 
-
-        # --- THÊM ĐỘ TRỄ 0.5 GIÂY TẠI ĐÂY ---
-        print(f"AI đã chọn nước đi: {selected_move}. Đang chờ 0.5 giây trước khi gửi phản hồi...")
-        await asyncio.sleep(1.5) # Sử dụng asyncio.sleep cho hàm async
+        print(f"AI đã chọn nước đi: {selected_move}")
+        await asyncio.sleep(1.0)
 
         print("Đã hết thời gian chờ. Gửi phản hồi.")
         return AIResponse(move=selected_move)
