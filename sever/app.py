@@ -37,7 +37,7 @@ async def make_move(game_state: GameState) -> AIResponse:
             raise ValueError("Không có nước đi hợp lệ")
 
 
-        selected_move = get_best_move_cpp(game_state.board, game_state.valid_moves)
+        selected_move = get_best_move_cpp(game_state.board, game_state.current_player, game_state.valid_moves)
 
 
         return AIResponse(move=selected_move)

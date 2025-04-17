@@ -26,45 +26,79 @@ print(f"DEBUG: SCRIPT_DIR = {SCRIPT_DIR}")
 print(f"DEBUG: SEVER_DIR = {SEVER_DIR}")
 print(f"DEBUG: EXE_PATH = {EXE_PATH}")
 
+sequence = ""
+previous_board = [[0 for _ in range(7)] for _ in range(6)]
+
+def is_game_over(board: List[List[int]]) -> bool:
+    # Check for full board (draw)
+    if all(cell != 0 for row in board for cell in row):
+        return True
+
+    # Check for 4 in a row (horizontal, vertical, diagonal)
+    height = len(board)
+    width = len(board[0])
+    for r in range(height):
+        for c in range(width):
+            if board[r][c] == 0:
+                continue
+            player = board[r][c]
+            # Check right
+            if c <= width - 4 and all(board[r][c+i] == player for i in range(4)):
+                return True
+            # Check down
+            if r <= height - 4 and all(board[r+i][c] == player for i in range(4)):
+                return True
+            # Diagonal down-right
+            if r <= height - 4 and c <= width - 4 and all(board[r+i][c+i] == player for i in range(4)):
+                return True
+            # Diagonal up-right
+            if r >= 3 and c <= width - 4 and all(board[r-i][c+i] == player for i in range(4)):
+                return True
+    return False
+
+def reset_state():
+    global sequence, previous_board
+    sequence = ""
+    previous_board = [[0 for _ in range(7)] for _ in range(6)]
+
 
 # --- Phần Solver Python (tùy chọn) ---
 # ... (Giữ nguyên nếu cần)
 
-def convert_board_to_movesequence(board: List[List[int]]) -> str:
+def convert_board_to_movesequence(current_board: List[List[int]]) -> str:
     """
     Chuyển đổi trạng thái bàn cờ (board) 2D thành chuỗi nước đi (move_sequence).
     Trả về chuỗi rỗng nếu board không hợp lệ hoặc không thể tái tạo.
     """
-    move_sequence = ""
-    height = len(board)
-    width = len(board[0]) if board and board[0] else 0
-    if not width or not height:
+    global sequence, previous_board
+
+    # Game over? Reset everything.
+    if is_game_over(current_board):
+        print("Opponent wins. Game over detected. Resetting state.")
+        reset_state()
         return ""
 
-    col_heights = [0] * width
-    flat_board = [[board[r][col] for r in range(height - 1, -1, -1)] for col in range(width)]
-    num_pieces_on_board = sum(1 for r in board for cell in r if cell != 0)
-    current_player = 1
+    height = len(current_board)
+    width = len(current_board[0])
 
-    for i in range(num_pieces_on_board):
-        move_found_for_player = False
-        for col in range(width):
-            if col_heights[col] < height and flat_board[col][col_heights[col]] == current_player:
-                move_sequence += str(col + 1)
-                col_heights[col] += 1
-                move_found_for_player = True
-                break
-        if not move_found_for_player:
-            print(f"LỖI trong convert_board_to_movesequence: Không thể tái tạo nước đi thứ {i+1} cho người chơi {current_player}.")
-            print(f"Board: {board}")
-            print(f"Col heights tại thời điểm lỗi: {col_heights}")
-            return "" # Trả về chuỗi rỗng báo hiệu lỗi/không hợp lệ
+    # Find the column where a new piece was added
+    for col in range(width):
+        for row in range(height):
+            if previous_board[row][col] != current_board[row][col]:
+                # There is a difference — new disc dropped
+                if current_board[row][col] in [1, 2] and previous_board[row][col] == 0:
+                    # Register this move
+                    sequence += str(col + 1)
+                    previous_board = [row[:] for row in current_board]  # update snapshot
+                    break
 
-        current_player = 3 - current_player
+    # If no move detected (possibly a duplicate request), just update snapshot
+    previous_board = [row[:] for row in current_board]
+    move_sequence = sequence
 
     return move_sequence
 
-def get_best_move_cpp(board: List[List[int]], valid_moves: List[int]) -> int:
+def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: List[int]) -> int:
     """
     Lấy nước đi tốt nhất bằng cách gọi file thực thi C++ c4solver.exe.
     """
@@ -149,7 +183,7 @@ def get_best_move_cpp(board: List[List[int]], valid_moves: List[int]) -> int:
 
         last_line = output_lines[-1].strip()
         parts = last_line.split()
-        expected_parts = 1 + len(board[0])
+        expected_parts = len(board[0])
         if len(parts) < expected_parts:
              # In thêm thông tin debug nếu lỗi phân tích
             print(f"DEBUG: Số phần tử nhận được: {len(parts)}, kỳ vọng: {expected_parts}")
@@ -204,6 +238,21 @@ def get_best_move_cpp(board: List[List[int]], valid_moves: List[int]) -> int:
              raise ValueError("Không có nước đi hợp lệ và không thể xác định nước đi tốt nhất.")
 
     print(f"DEBUG: Nước đi tốt nhất được chọn (cột 0-based): {best_col+1} với điểm {best_score}")
+
+    global sequence, previous_board
+    sequence += str(best_col + 1)  # Update move history
+
+    # Update previous_board manually to reflect our move
+    for row in reversed(range(len(previous_board))):
+        if previous_board[row][best_col] == 0:
+            previous_board[row][best_col] = current_player
+            break
+
+    # Game over? Reset everything.
+    if is_game_over(previous_board):
+        print("I win. Game over detected. Resetting state.")
+        reset_state()
+
     return best_col
 
 
@@ -229,7 +278,7 @@ if __name__ == "__main__":
     start_time_cpp = time.time()
     try:
         # Gọi hàm sử dụng C++ solver với board hợp lệ
-        best_move = get_best_move_cpp(board_example_valid, valid_moves_example_valid)
+        best_move = get_best_move_cpp(board_example_valid, 1, valid_moves_example_valid)
         print(f"\n>>> Kết quả: Nước đi tốt nhất được đề xuất bởi C++ là cột: {best_move}")
     except Exception as e:
         print(f"\n--- LỖI TRONG QUÁ TRÌNH KIỂM TRA ---")
