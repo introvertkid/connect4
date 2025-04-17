@@ -102,6 +102,7 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
     """
     Lấy nước đi tốt nhất bằng cách gọi file thực thi C++ c4solver.exe.
     """
+    global sequence, previous_board
     if not valid_moves:
         print("Cảnh báo: Không có nước đi hợp lệ nào.")
         return -1
@@ -119,6 +120,13 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
         # Trả về cột giữa (index 3) nếu hợp lệ
         center_col = 3
         if center_col in valid_moves:
+            sequence += str(center_col + 1)  # Update move history
+
+            # Update previous_board manually to reflect our move
+            for row in reversed(range(len(previous_board))):
+                if previous_board[row][center_col] == 0:
+                    previous_board[row][center_col] = current_player
+                    break
             return center_col
         elif valid_moves: # Nếu cột giữa không hợp lệ (lạ), trả về nước hợp lệ đầu tiên
              print(f"Cảnh báo: Bảng rỗng nhưng cột giữa {center_col} không hợp lệ? Trả về {valid_moves[0]}.")
@@ -183,7 +191,7 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
 
         last_line = output_lines[-1].strip()
         parts = last_line.split()
-        expected_parts = len(board[0])
+        expected_parts = 1+len(board[0])
         if len(parts) < expected_parts:
              # In thêm thông tin debug nếu lỗi phân tích
             print(f"DEBUG: Số phần tử nhận được: {len(parts)}, kỳ vọng: {expected_parts}")
@@ -239,7 +247,6 @@ def get_best_move_cpp(board: List[List[int]], current_player: int, valid_moves: 
 
     print(f"DEBUG: Nước đi tốt nhất được chọn (cột 0-based): {best_col+1} với điểm {best_score}")
 
-    global sequence, previous_board
     sequence += str(best_col + 1)  # Update move history
 
     # Update previous_board manually to reflect our move
