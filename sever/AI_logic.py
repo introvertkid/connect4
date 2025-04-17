@@ -1,5 +1,5 @@
 import os
-from typing import List, Dict
+from typing import List
 import time
 import subprocess
 
@@ -122,7 +122,7 @@ def get_best_move(board: List[List[int]], current_player: int, valid_moves: List
     if not move_sequence and num_pieces_on_board > 0:
         raise ValueError(f"LỖI: Không thể tạo move_sequence hợp lệ từ board cung cấp. Board có thể không hợp lệ.")
 
-    scores_from_cpp = [-10000] * len(board[0])
+    scores = [-10000] * len(board[0])
 
     command = [EXE_PATH]
 
@@ -147,15 +147,15 @@ def get_best_move(board: List[List[int]], current_player: int, valid_moves: List
         print(f"DEBUG: Các phần tử: {parts}")
 
     score_strings = parts[1:expected_parts]
-    scores_from_cpp = [int(s) for s in score_strings]
-    print(f"DEBUG: Scores: {scores_from_cpp}")
+    scores = [int(s) for s in score_strings]
+    print(f"DEBUG: Scores: {scores}")
 
     # 5. Chọn nước đi tốt nhất
     best_score = -float('inf')
     best_col = -1
     for col_index in valid_moves:
-        if 0 <= col_index < len(scores_from_cpp):
-            current_score = scores_from_cpp[col_index]
+        if 0 <= col_index < len(scores):
+            current_score = scores[col_index]
             if current_score > best_score:
                 best_score = current_score
                 best_col = col_index
