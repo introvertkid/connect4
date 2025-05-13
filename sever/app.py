@@ -41,7 +41,7 @@ async def make_move(game_state: GameState) -> AIResponse:
             raise HTTPException(status_code=400, detail="Không có nước đi hợp lệ nào được cung cấp.")
 
         # Gọi hàm logic AI (đảm bảo hàm này xử lý lỗi nội bộ nếu có)
-        selected_move = get_best_move(game_state.board, game_state.current_player, game_state.valid_moves)
+        selected_move = get_best_move(game_state.board, game_state.valid_moves)
 
         # Kiểm tra xem AI có trả về nước đi hợp lệ không
         # (Điều chỉnh logic này dựa trên cách get_best_move_cpp báo lỗi)
