@@ -5,9 +5,8 @@ from array import array # Sử dụng array để lưu trữ dữ liệu nhị p
 from TranspositionTable import med, has_factor, next_prime
 
 class Position:
-    # Cần triển khai các phương thức này một cách chính xác
     _nb_moves: int = 0
-    _key3: int = 0 # uint64_t
+    _key3: int = 0
 
     def nb_moves(self) -> int:
         return self._nb_moves
@@ -16,54 +15,31 @@ class Position:
         self._nb_moves = moves
 
     def key3(self) -> int:
-        # Cần trả về giá trị uint64_t tương ứng với thế cờ
         return self._key3
 
     def set_key3(self, key: int):
-        # Đảm bảo key là số nguyên không âm (mô phỏng uint64_t)
-        self._key3 = key & 0xFFFFFFFFFFFFFFFF # Giữ trong giới hạn 64-bit
+        self._key3 = key & 0xFFFFFFFFFFFFFFFF
 
 class Book:
-    """
-    Quản lý Opening Book cho Connect4, được tải từ tệp nhị phân.
-
-    Lớp này đọc và ghi các tệp opening book có định dạng cụ thể
-    và cung cấp quyền truy cập vào các giá trị được lưu trữ.
-
-    *** CHỨC NĂNG GIỐNG HỆT C++ ***
-    Phiên bản này được cập nhật để khớp với logic của
-    TranspositionTable.hpp đã cung cấp:
-    - Kích thước bảng là số nguyên tố >= 2^log_size.
-    - Index được tính bằng phép toán modulo (%).
-    - Khóa một phần là các bit thấp của khóa đầy đủ, được xác định
-      bởi partial_key_bytes.
-    """
-
     def __init__(self, width: int, height: int):
         """ Khởi tạo một OpeningBook trống. """
         self.width: int = width
         self.height: int = height
         self.depth: int = -1
-        self.log_size: int = 0  # log_size gốc đọc từ file
-        self.size: int = 0      # Kích thước số nguyên tố thực tế của bảng
+        self.log_size: int = 0 
+        self.size: int = 0   
         self.partial_key_bytes: int = 0
-        self.value_bytes: int = 1 # Luôn là 1
+        self.value_bytes: int = 1
 
-        self.partial_keys = None # array.array
-        self.values = None       # array.array('B')
+        self.partial_keys = None
+        self.values = None  
 
-        # Mặt nạ để tính/ép kiểu khóa một phần
         self._partial_key_mask = 0
 
     def _calculate_partial_key(self, full_key: int) -> int:
-        """
-        Tính toán khóa một phần bằng cách áp dụng mặt nạ.
-        Tương đương với việc ép kiểu (partial_key_t)key trong C++.
-        """
         return full_key & self._partial_key_mask
 
     def load(self, filename: str) -> bool:
-        """ Tải opening book từ một tệp nhị phân. """
         # Đặt lại trạng thái
         self.depth = -1
         self.partial_keys = None
@@ -104,10 +80,7 @@ class Book:
                 if not (0 < _log_size <= 40): # Giữ giới hạn tổng quát từ C++
                     print(f"Lỗi: log2(size) không hợp lệ: {_log_size}", file=sys.stderr)
                     return False
-                # Optional: Warning nếu log_size ngoài phạm vi C++ init (21-27)
-                # if not (21 <= _log_size <= 27):
-                #     print(f"Cảnh báo: log_size ({_log_size}) nằm ngoài phạm vi C++ gốc (21-27).", file=sys.stderr)
-
+                
                 # --- Khởi tạo cấu trúc dữ liệu ---
                 self.log_size = _log_size # Lưu log_size gốc
                 target_power_of_2 = 1 << self.log_size
@@ -117,9 +90,8 @@ class Book:
                 print(f" size={self.size}. ", end="", file=sys.stderr)
 
                 self.partial_key_bytes = _partial_key_bytes
-                self.value_bytes = _value_bytes # Luôn là 1
+                self.value_bytes = _value_bytes
 
-                # Xác định kiểu dữ liệu và mặt nạ cho partial_keys
                 if self.partial_key_bytes == 1:
                     pk_typecode = 'B'; self._partial_key_mask = 0xFF
                 elif self.partial_key_bytes == 2:
@@ -133,7 +105,6 @@ class Book:
                               return False
                     self._partial_key_mask = 0xFFFFFFFF
                 else:
-                     # Trường hợp này đã được kiểm tra, nhưng để an toàn
                      print(f"Lỗi: partial_key_bytes không hợp lệ: {self.partial_key_bytes}", file=sys.stderr)
                      return False
 
@@ -185,48 +156,9 @@ class Book:
              print(f"Lỗi không xác định khi tải opening book: {e}", file=sys.stderr)
              return False
 
-    def save(self, output_file: str) -> bool:
-        """ Lưu opening book hiện tại vào một tệp nhị phân. """
-        if not self.is_loaded(): # Dùng is_loaded cho gọn
-            print("Lỗi: Không có dữ liệu opening book hợp lệ để lưu.", file=sys.stderr)
-            return False
-
-        # Kích thước mảng đã được is_loaded() kiểm tra gián tiếp qua self.size > 0
-
-        try:
-            with open(output_file, 'wb') as ofs:
-                # Ghi header
-                header_format = 'bbbbbb'
-                # *** QUAN TRỌNG: Ghi log_size GỐC vào header, không phải log2 của số nguyên tố ***
-                # Điều này khớp với cách C++ đọc và ghi (dù hàm log2 trong save C++ hơi lạ)
-                header_data = struct.pack(header_format,
-                                          self.width,
-                                          self.height,
-                                          self.depth,
-                                          self.partial_key_bytes,
-                                          self.value_bytes, # Luôn là 1
-                                          self.log_size)     # Ghi log_size gốc
-                ofs.write(header_data)
-
-                # Ghi mảng khóa một phần (dùng kích thước số nguyên tố self.size)
-                self.partial_keys.tofile(ofs)
-
-                # Ghi mảng giá trị (dùng kích thước số nguyên tố self.size)
-                self.values.tofile(ofs)
-
-            print(f"Đã lưu opening book vào: {output_file} (size={self.size}, log_size={self.log_size})", file=sys.stderr)
-            return True
-        except IOError as e:
-            print(f"Lỗi: Không thể ghi vào tệp '{output_file}': {e}", file=sys.stderr)
-            return False
-        except Exception as e:
-            print(f"Lỗi không xác định khi lưu opening book: {e}", file=sys.stderr)
-            return False
-
-
     def get(self, P: Position) -> int:
         """
-        Lấy giá trị được lưu trữ cho một thế cờ từ opening book.
+        Lấy giá trị được lưu trữ cho một thế cờ từ book.
         Sử dụng logic khớp với C++ TranspositionTable:
         - Index = full_key % prime_size
         - So sánh partial_key đã lưu với (partial_key_t)full_key
